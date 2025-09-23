@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import xlsx from "xlsx";
-import fs from "fs";
+
 import path from "path";
 
 export const readMatrizExcel = (req: Request, res: Response) => {

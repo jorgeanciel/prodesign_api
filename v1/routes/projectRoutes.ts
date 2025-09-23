@@ -24,8 +24,6 @@ const errPipe =
 
 const storage = multer.diskStorage({
 	filename(req, file, callback) {
-		// const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-		// callback(null, req.params.id + "-" + uniqueSuffix);
 		callback(null, "thumbnail-" + req.params.id + ".png");
 	},
 	destination: "uploads/",

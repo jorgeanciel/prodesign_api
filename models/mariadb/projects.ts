@@ -44,6 +44,9 @@ class Project extends Model<
 	declare toilets_per_student: string;
 	declare stairs: string;
 	declare vertices: string;
+	declare vertices_rectangle: string;
+	declare angle: number;
+	declare number_floors: string;
 
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -137,7 +140,7 @@ Project.init(
 			type: DataTypes.TEXT,
 		},
 		ambientes: {
-			type: DataTypes.TEXT,
+			type: DataTypes.JSON,
 		},
 		aforo: {
 			type: DataTypes.TEXT,
@@ -152,7 +155,16 @@ Project.init(
 			type: DataTypes.TEXT,
 		},
 		vertices: {
-			type: DataTypes.TEXT,
+			type: DataTypes.JSON,
+		},
+		vertices_rectangle: {
+			type: DataTypes.JSON,
+		},
+		angle: {
+			type: DataTypes.STRING,
+		},
+		number_floors: {
+			type: DataTypes.STRING,
 		},
 		createdAt: DataTypes.DATE,
 		updatedAt: DataTypes.DATE,

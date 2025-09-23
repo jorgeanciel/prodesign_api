@@ -16,8 +16,7 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 import mariaDB from "./dbMariaDb";
 import userSession from "./userSession";
-import { getClientIp } from "request-ip";
-// import asd from "public-ip";
+
 
 class Server {
 	private app: Application;

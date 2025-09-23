@@ -90,18 +90,7 @@ export const getProjectsByUserIDService = async (
 	typeProject?: string
 ) => {
 	try {
-		// @ts-ignore
-		// const type_id_project = (await TypeProject.findOne({
-		// 	where: { name: typeProject || null! }
-		// }))?.id;
-
-		// if (!type_id_project && typeProject) {
-		// 	return {
-		// 		error: "No projects found",
-		// 		status: 400,
-		// 		msg: "Invalid slug" // type project name
-		// 	}
-		// }
+		
 
 		const projects = await Project.findAll({
 			where: {
@@ -176,9 +165,7 @@ export const getProjectsCostsService = async (id: number) => {
 		calculatedCosts,
 	};
 
-	// calculated.find(el => {
-	// 	return el.categoria === ela.muros_y_columnas
-	// }).muros_y_columnas,
+	
 };
 
 export const updateProjectCostsService = async (body: any, id: number) => {
@@ -189,10 +176,7 @@ export const updateProjectCostsService = async (body: any, id: number) => {
 		(obj, cur) => ({ ...obj, [cur.categoria]: cur.toJSON() }),
 		{}
 	);
-
-	// console.log(costsReference)
-	// console.log("body instal", body.instalaciones)
-
+  
 	return {
 		calculatedProjectCosts: {
 			project_id: id,
@@ -213,7 +197,6 @@ export const createThumbnailService = async (req: Request, res: Response) => {
 	res.status(200).json(req.file);
 };
 
-// en desuso
 export const getProjectVersionsByIDService = async (id: number) => {
 	return Project.findAll({
 		where: {
