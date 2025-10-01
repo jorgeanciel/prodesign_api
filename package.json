@@ -7,9 +7,9 @@
 		"app": "tsc --project . && node dist/app.js",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "tsc --project .",
-	   "dev": "ts-node src/index.ts",
-		"prod": "node dist/app.js",
-		"start": "node dist/index.js"
+		"dev": "nodemon app.ts",
+		"prod": "node dist/app.js"
+	
 	},
 	"repository": {
 		"type": "git",
