@@ -10,13 +10,13 @@ import {
 	detailplanpermissionRoutes,
 	costsReferenceRoutes,
 	excelRoutes,
+	calculateExcelRoutes,
 } from "../v1/routes";
 import { Cors } from "../middlewares/cors";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 import mariaDB from "./dbMariaDb";
 import userSession from "./userSession";
-
 
 class Server {
 	private app: Application;
@@ -67,6 +67,7 @@ class Server {
 		this.app.use("/api/v1/permisos", permissionRoutes);
 		this.app.use("/api/v1/detailplanpermission", detailplanpermissionRoutes);
 		this.app.use("/api/v1/admin/costsReference", costsReferenceRoutes);
+		this.app.use("/api/v1/excel", calculateExcelRoutes);
 		this.app.use("/api/v1/geolocation", (req, res) => {
 			// const test_library_ip = getClientIp(req);
 			const clientIP =
