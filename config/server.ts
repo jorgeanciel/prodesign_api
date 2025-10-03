@@ -17,14 +17,13 @@ import passport from "passport";
 import mariaDB from "./dbMariaDb";
 import userSession from "./userSession";
 
-
 class Server {
 	private app: Application;
 	private port: number;
 
 	constructor() {
 		this.app = express();
-		this.port = parseInt(process.env.PORT_SERVER || "8000", 10);
+		this.port = parseInt(process.env.PORT_SERVER || "8005", 10);
 		this.app.disable("x-powered-by");
 		this.app.set("trust proxy", true);
 

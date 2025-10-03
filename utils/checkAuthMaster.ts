@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 export async function checkAuthMaster(action: AuthAction, body: any) {
 	return new Promise((resolve, reject) => {
 		const cr = request(
-			`http://localhost:8000/api/v1/${action}`,
+			`${process.env.APP_URL}/api/v1/${action}`,
 			{
 				method: "POST",
 				headers: {
@@ -11,8 +11,7 @@ export async function checkAuthMaster(action: AuthAction, body: any) {
 					// Authorization:
 					// 	"Bearer " +
 					// 	jwt.sign({ key: "AH3iH16PXS2" }, process.env.TOKEN_KEY),
-					Authorization:
-						"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzcwNjM0MDAsImlhdCI6MTY1NDA1MjgwMCwia2V5IjoiQUgzaUgxNlBYUzIifQ.9y631o_6Ejl9jMDAJcg2bLpWgoNAw6W89koYPxc9jD4",
+					Authorization: `Bearer ${process.env.TOKEN_KEY}`,
 				},
 			},
 			(res) => {
