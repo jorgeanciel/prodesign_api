@@ -8,3 +8,4 @@ export { default as permissionRoutes } from "./permissionRoutes";
 export { default as detailplanpermissionRoutes } from "./detailPlanPermissionRoutes";
 export { default as costsReferenceRoutes } from "./costsReference-routes";
 export { default as excelRoutes } from "./excelRoutes";
+export { default as calculateExcelRoutes } from "./calculateExcelRoutes";
