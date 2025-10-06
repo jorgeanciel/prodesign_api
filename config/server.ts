@@ -15,8 +15,9 @@ import {
 import { Cors } from "../middlewares/cors";
 import cookieParser from "cookie-parser";
 import passport from "passport";
-import mariaDB from "./dbMariaDb";
+//import mySQL from "./dbMySQL";
 import userSession from "./userSession";
+import mySQL from "./dbMySQL";
 
 class Server {
 	private app: Application;
@@ -36,9 +37,9 @@ class Server {
 
 	async dbConnection() {
 		try {
-			await mariaDB.authenticate();
+			await mySQL.authenticate();
 			// await mariaDB.sync({ alter: true });
-			console.log("conectado mariadb");
+			console.log("conectado mySQL");
 		} catch (error: any) {
 			console.log(error);
 			throw new Error("error en conexión: " + error.message);

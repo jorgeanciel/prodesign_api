@@ -1,11 +1,17 @@
-import { DataTypes, Model, InferAttributes, InferCreationAttributes, Optional } from 'sequelize';
-import  mariaDB  from './../../config/dbMariaDb';
-import { PlanesI  } from '../../interfaces/plan';
+import {
+	DataTypes,
+	Model,
+	InferAttributes,
+	InferCreationAttributes,
+	Optional,
+} from "sequelize";
+import mariaDB from "../../config/dbMySQL";
+import { PlanesI } from "../../interfaces/plan";
 
-export interface UserIpunt extends Optional<PlanesI, 'id'> {}
-export interface UserOuput extends Optional<PlanesI, 'id'> {}
+export interface UserIpunt extends Optional<PlanesI, "id"> {}
+export interface UserOuput extends Optional<PlanesI, "id"> {}
 
-class Planes extends Model <
+class Planes extends Model<
 	InferAttributes<Planes>,
 	InferCreationAttributes<Planes>
 > {
@@ -19,37 +25,42 @@ class Planes extends Model <
 	declare updatedAt: Date;
 }
 
-Planes.init({
-	id: { 
-		type: DataTypes.INTEGER.UNSIGNED,
-		autoIncrement: true,
-		primaryKey: true
+Planes.init(
+	{
+		id: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			autoIncrement: true,
+			primaryKey: true,
+		},
+		descripcion: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		vigencia: {
+			type: DataTypes.INTEGER,
+			allowNull: false,
+		},
+		precio: {
+			type: DataTypes.INTEGER,
+			allowNull: false,
+		},
+		defecto: {
+			type: DataTypes.INTEGER,
+			allowNull: false,
+		},
+		estado: {
+			type: DataTypes.INTEGER,
+			allowNull: false,
+		},
+		createdAt: DataTypes.DATE,
+		updatedAt: DataTypes.DATE,
 	},
-	descripcion: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	vigencia: {
-		type: DataTypes.INTEGER, allowNull: false
-	},
-	precio: {
-		type: DataTypes.INTEGER, allowNull: false
-	},
-	defecto: {
-		type: DataTypes.INTEGER, allowNull: false
-	},
-	estado: {
-		type: DataTypes.INTEGER,
-		allowNull: false
-	},
-	createdAt: DataTypes.DATE,
-	updatedAt: DataTypes.DATE
-},
-{
-	sequelize: mariaDB,
-	tableName: 'planes',
-	paranoid: true,
-	underscored: true
-});
+	{
+		sequelize: mariaDB,
+		tableName: "planes",
+		paranoid: true,
+		underscored: true,
+	}
+);
 
 export default Planes;

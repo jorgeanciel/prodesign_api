@@ -1,5 +1,11 @@
-import { DataTypes, Model, InferAttributes, InferCreationAttributes, Optional } from "sequelize";
-import mariaDB from "./../../config/dbMariaDb";
+import {
+	DataTypes,
+	Model,
+	InferAttributes,
+	InferCreationAttributes,
+	Optional,
+} from "sequelize";
+import mariaDB from "../../config/dbMySQL";
 
 type CostsReferenceAtrributes = {
 	categoria: string;
@@ -12,10 +18,10 @@ type CostsReferenceAtrributes = {
 	instalaciones: number;
 	createdAt: Date;
 	updatedAt: Date;
-}
+};
 type CostsReferenceCreationAtrributes = CostsReferenceAtrributes;
 
-class CostsReference extends Model <
+class CostsReference extends Model<
 	CostsReferenceAtrributes,
 	CostsReferenceCreationAtrributes
 > {
@@ -31,41 +37,43 @@ class CostsReference extends Model <
 	declare updatedAt: Date;
 }
 
-CostsReference.init({
-	categoria: { 
-		type: DataTypes.CHAR(1),
-		primaryKey: true,
-		allowNull: false
+CostsReference.init(
+	{
+		categoria: {
+			type: DataTypes.CHAR(1),
+			primaryKey: true,
+			allowNull: false,
+		},
+		muros_y_columnas: {
+			type: DataTypes.FLOAT(11),
+		},
+		techos: {
+			type: DataTypes.FLOAT(11),
+		},
+		pisos: {
+			type: DataTypes.FLOAT(11),
+		},
+		puertas_y_ventanas: {
+			type: DataTypes.FLOAT(11),
+		},
+		revestimientos: {
+			type: DataTypes.FLOAT(11),
+		},
+		banos: {
+			type: DataTypes.FLOAT(11),
+		},
+		instalaciones: {
+			type: DataTypes.FLOAT(11),
+		},
+		createdAt: DataTypes.DATE,
+		updatedAt: DataTypes.DATE,
 	},
-	muros_y_columnas: {
-		type: DataTypes.FLOAT(11)
-	},
-	techos: {
-		type: DataTypes.FLOAT(11)
-	},
-	pisos: {
-		type: DataTypes.FLOAT(11)
-	},
-	puertas_y_ventanas: {
-		type: DataTypes.FLOAT(11)
-	},
-	revestimientos: {
-		type: DataTypes.FLOAT(11)
-	},
-	banos: {
-		type: DataTypes.FLOAT(11)
-	},
-	instalaciones: {
-		type: DataTypes.FLOAT(11)
-	},
-	createdAt: DataTypes.DATE,
-	updatedAt: DataTypes.DATE
-},
-{
-	sequelize: mariaDB,
-	tableName: "costs_reference",
-	paranoid: true,
-	underscored: true
-});
+	{
+		sequelize: mariaDB,
+		tableName: "costs_reference",
+		paranoid: true,
+		underscored: true,
+	}
+);
 
 export default CostsReference;

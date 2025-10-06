@@ -7,7 +7,7 @@ import {
 	HasOneCreateAssociationMixin,
 	HasOneSetAssociationMixin,
 } from "sequelize";
-import mariaDB from "./../../config/dbMariaDb";
+import mariaDB from "../../config/dbMySQL";
 import ProjectCategory from "./projectCategory";
 
 class Project extends Model<

@@ -1,9 +1,15 @@
-import { DataTypes, Model, InferAttributes, InferCreationAttributes, Optional } from 'sequelize';
-import mariaDB from './../../config/dbMariaDb';
-import { ZonesI } from '../../interfaces/zones';
+import {
+	DataTypes,
+	Model,
+	InferAttributes,
+	InferCreationAttributes,
+	Optional,
+} from "sequelize";
+import mariaDB from "../../config/dbMySQL";
+import { ZonesI } from "../../interfaces/zones";
 
-export interface UserIpunt extends Optional<ZonesI, 'id'> {}
-export interface UserOuput extends Optional<ZonesI, 'id'> {}
+export interface UserIpunt extends Optional<ZonesI, "id"> {}
+export interface UserOuput extends Optional<ZonesI, "id"> {}
 
 class TypeProject extends Model<
 	InferAttributes<TypeProject>,
@@ -20,38 +26,39 @@ class TypeProject extends Model<
 }
 
 TypeProject.init(
-{
-	id: {
-		type: DataTypes.INTEGER.UNSIGNED,
-		autoIncrement: true,
-		primaryKey: true
+	{
+		id: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			autoIncrement: true,
+			primaryKey: true,
+		},
+		name: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		company_id: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			defaultValue: 0,
+		},
+		icon: {
+			type: DataTypes.STRING,
+		},
+		show: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true,
+		},
+		slug: {
+			type: DataTypes.STRING,
+		},
+		createdAt: DataTypes.DATE,
+		updatedAt: DataTypes.DATE,
 	},
-	name: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	company_id: {
-		type: DataTypes.INTEGER.UNSIGNED,
-		defaultValue: 0
-	},
-	icon: {
-		type: DataTypes.STRING
-	},
-	show: {
-		type: DataTypes.BOOLEAN,
-		defaultValue: true
-	},
-	slug: {
-		type: DataTypes.STRING
-	},
-	createdAt: DataTypes.DATE,
-	updatedAt: DataTypes.DATE
-},
-{
-	sequelize: mariaDB,
-	tableName: "types_projects",
-	paranoid: true,
-	underscored: true
-});
+	{
+		sequelize: mariaDB,
+		tableName: "types_projects",
+		paranoid: true,
+		underscored: true,
+	}
+);
 
 export default TypeProject;
