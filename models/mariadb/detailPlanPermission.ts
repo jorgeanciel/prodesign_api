@@ -5,7 +5,7 @@ import {
 	InferCreationAttributes,
 	CreationOptional,
 } from "sequelize";
-import mariaDB from "./../../config/dbMariaDb";
+import mariaDB from "../../config/dbMySQL";
 import Planes from "./plan";
 import Permiso from "./permiso";
 
@@ -21,48 +21,58 @@ class DetailPlanPermission extends Model<
 	declare updatedAt: CreationOptional<Date>;
 }
 
-DetailPlanPermission.init({
-	id: {
-		type: DataTypes.INTEGER.UNSIGNED,
-		autoIncrement: true,
-		primaryKey: true
+DetailPlanPermission.init(
+	{
+		id: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			autoIncrement: true,
+			primaryKey: true,
+		},
+		idplan: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			allowNull: false,
+			references: {
+				model: Planes,
+				key: "id",
+			},
+		},
+		idpermiso: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			allowNull: false,
+			references: {
+				model: Permiso,
+				key: "id",
+			},
+		},
+		estado: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			allowNull: false,
+		},
+		createdAt: DataTypes.DATE,
+		updatedAt: DataTypes.DATE,
 	},
-	idplan: {
-		type: DataTypes.INTEGER.UNSIGNED, 
-		allowNull: false,
-		references: {
-			model: Planes,
-			key: "id"
-		}
-	},
-	idpermiso: {
-		type: DataTypes.INTEGER.UNSIGNED,
-		allowNull: false,
-		references: {
-			model: Permiso,
-			key: "id"
-		}
-	},
-	estado: {
-		type: DataTypes.INTEGER.UNSIGNED,
-		allowNull: false
-	},
-	createdAt: DataTypes.DATE,
-	updatedAt: DataTypes.DATE
-},
-{
-	sequelize: mariaDB,
-	tableName: "detailplanpermission",
-	paranoid: true,
-	underscored: true,
-	indexes: [{
-		unique: true,
-		fields: ["idplan", "idpermiso"]
-	}]
-});
+	{
+		sequelize: mariaDB,
+		tableName: "detailplanpermission",
+		paranoid: true,
+		underscored: true,
+		indexes: [
+			{
+				unique: true,
+				fields: ["idplan", "idpermiso"],
+			},
+		],
+	}
+);
 
-Planes.belongsToMany(Permiso, { through: DetailPlanPermission, foreignKey: "idplan" });
-Permiso.belongsToMany(Planes, { through: DetailPlanPermission, foreignKey: "idpermiso" });
+Planes.belongsToMany(Permiso, {
+	through: DetailPlanPermission,
+	foreignKey: "idplan",
+});
+Permiso.belongsToMany(Planes, {
+	through: DetailPlanPermission,
+	foreignKey: "idpermiso",
+});
 
 // Planes.belongsToMany(Permiso,{ through: "detailplanpermission", foreignKey: "idplan" })
 // Permiso.belongsToMany(Planes,{ through: "detailplanpermission", foreignKey: "idpermiso" })

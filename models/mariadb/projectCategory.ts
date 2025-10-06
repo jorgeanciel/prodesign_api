@@ -1,5 +1,10 @@
-import { DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
-import mariaDB from "./../../config/dbMariaDb";
+import {
+	DataTypes,
+	Model,
+	InferAttributes,
+	InferCreationAttributes,
+} from "sequelize";
+import mariaDB from "../../config/dbMySQL";
 
 type ProjectCategoryAtrributes = {
 	id: number;
@@ -14,10 +19,10 @@ type ProjectCategoryAtrributes = {
 	instalaciones: string;
 	createdAt: Date;
 	updatedAt: Date;
-}
+};
 type ProjectCategoryCreationAtrributes = ProjectCategoryAtrributes;
 
-class ProjectCategory extends Model <
+class ProjectCategory extends Model<
 	ProjectCategoryAtrributes,
 	ProjectCategoryCreationAtrributes
 > {
@@ -35,48 +40,50 @@ class ProjectCategory extends Model <
 	declare updatedAt: Date;
 }
 
-ProjectCategory.init({
-	id: { 
-		type: new DataTypes.INTEGER({ unsigned: true, length: 11 }),
-		primaryKey: true,
-		autoIncrement: true,
-		allowNull: false
+ProjectCategory.init(
+	{
+		id: {
+			type: new DataTypes.INTEGER({ unsigned: true, length: 11 }),
+			primaryKey: true,
+			autoIncrement: true,
+			allowNull: false,
+		},
+		user_id: {
+			type: new DataTypes.INTEGER({ unsigned: true, length: 11 }),
+		},
+		project_id: {
+			type: new DataTypes.INTEGER({ unsigned: true, length: 11 }),
+		},
+		project_parent_id: {
+			type: new DataTypes.INTEGER({ unsigned: true, length: 11 }),
+		},
+		muros_y_columnas: {
+			type: DataTypes.CHAR(1),
+		},
+		techos: {
+			type: DataTypes.CHAR(1),
+		},
+		puertas_y_ventanas: {
+			type: DataTypes.CHAR(1),
+		},
+		revestimientos: {
+			type: DataTypes.CHAR(1),
+		},
+		banos: {
+			type: DataTypes.CHAR(1),
+		},
+		instalaciones: {
+			type: DataTypes.CHAR(1),
+		},
+		createdAt: DataTypes.DATE,
+		updatedAt: DataTypes.DATE,
 	},
-	user_id: {
-		type: new DataTypes.INTEGER({ unsigned: true, length: 11 })
-	},
-	project_id: {
-		type: new DataTypes.INTEGER({ unsigned: true, length: 11 })
-	},
-	project_parent_id: {
-		type: new DataTypes.INTEGER({ unsigned: true, length: 11 })
-	},
-	muros_y_columnas: {
-		type: DataTypes.CHAR(1)
-	},
-	techos: {
-		type: DataTypes.CHAR(1)
-	},
-	puertas_y_ventanas: {
-		type: DataTypes.CHAR(1)
-	},
-	revestimientos: {
-		type: DataTypes.CHAR(1)
-	},
-	banos: {
-		type: DataTypes.CHAR(1)
-	},
-	instalaciones: {
-		type: DataTypes.CHAR(1)
-	},
-	createdAt: DataTypes.DATE,
-	updatedAt: DataTypes.DATE
-},
-{
-	sequelize: mariaDB,
-	tableName: "project_category",
-	paranoid: true,
-	underscored: true
-});
+	{
+		sequelize: mariaDB,
+		tableName: "project_category",
+		paranoid: true,
+		underscored: true,
+	}
+);
 
 export default ProjectCategory;

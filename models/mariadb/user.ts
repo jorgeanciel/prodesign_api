@@ -3,18 +3,15 @@ import {
 	Model,
 	InferAttributes,
 	InferCreationAttributes,
-	Optional
+	Optional,
 } from "sequelize";
-import mariaDB from "./../../config/dbMariaDb";
+import mariaDB from "../../config/dbMySQL";
 import { UserI } from "../../interfaces/user";
 
-export interface UserIpunt extends Optional<UserI, 'id'> {}
-export interface UserOuput extends Optional<UserI, 'id'> {}
+export interface UserIpunt extends Optional<UserI, "id"> {}
+export interface UserOuput extends Optional<UserI, "id"> {}
 
-class User extends Model <
-	InferAttributes<User>,
-	InferCreationAttributes<User>
-> {
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
 	declare id: number;
 	declare id_master: number;
 	declare name: string;
@@ -28,57 +25,60 @@ class User extends Model <
 	declare updatedAt: Date;
 }
 
-User.init({
-	id: { // @ts-ignore 
-		type: DataTypes.INTEGER.UNSIGNED,
-		autoIncrement: true,
-		primaryKey: true
+User.init(
+	{
+		id: {
+			// @ts-ignore
+			type: DataTypes.INTEGER.UNSIGNED,
+			autoIncrement: true,
+			primaryKey: true,
+		},
+		id_master: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			allowNull: false,
+		},
+		name: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		lastname: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		email: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		password: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		image: {
+			type: DataTypes.STRING,
+		},
+		sex: {
+			type: new DataTypes.CHAR({ length: 1 }),
+			defaultValue: "M",
+		},
+		profile_id: {
+			type: DataTypes.INTEGER.UNSIGNED,
+			defaultValue: 3,
+		},
+		createdAt: DataTypes.DATE,
+		updatedAt: DataTypes.DATE,
 	},
-	id_master: {
-		type: DataTypes.INTEGER.UNSIGNED,
-		allowNull: false
-	},
-	name: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	lastname: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	email: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	password: {
-		type: DataTypes.STRING,
-		allowNull: false 
-	},
-	image: {
-		type: DataTypes.STRING
-	},
-	sex: {
-		type: new DataTypes.CHAR({ length: 1 }),
-		defaultValue: "M"
-	},
-	profile_id: {
-		type: DataTypes.INTEGER.UNSIGNED,
-		defaultValue: 3
-	},
-	createdAt: DataTypes.DATE,
-	updatedAt: DataTypes.DATE
-},
-{
-	sequelize: mariaDB,
-	tableName: "users",
-	paranoid: true,
-	underscored: true
-});
+	{
+		sequelize: mariaDB,
+		tableName: "users",
+		paranoid: true,
+		underscored: true,
+	}
+);
 
-User.prototype.toJSON = function() {
+User.prototype.toJSON = function () {
 	const user: UserI = Object.assign({}, this.get());
 	delete user.password;
 	return user;
-}
+};
 
 export default User;
