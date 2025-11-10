@@ -35,6 +35,7 @@ export const readMatrizExcel = (req: Request, res: Response) => {
 		sheetInicial["A3"] = { t: "n", v: aforoInicial };
 		sheetPrimaria["A3"] = { t: "n", v: aforoPrimaria };
 		sheetSecundaria["A3"] = { t: "n", v: aforoSecundaria };
+
 		console.log("Aforos insertados en CALCULADORA_V2:");
 		console.log("- INICIAL.A3 =", aforoInicial);
 		console.log("- PRIMARIA.A3 =", aforoPrimaria);
@@ -57,10 +58,14 @@ export const readMatrizExcel = (req: Request, res: Response) => {
 			return cell?.v ?? 0;
 		};
 
-		// 📌 PASO 7: Extraer cantidad de aulas de G3 de cada hoja
-		const aulasInicial = getCellValue(updatedSheetInicial, "G3");
-		const aulasPrimaria = getCellValue(updatedSheetPrimaria, "G3");
-		const aulasSecundaria = getCellValue(updatedSheetSecundaria, "G3");
+		const capacidadInicial = getCellValue(updatedSheetInicial, "D1");
+		const capacidadPrimaria = getCellValue(updatedSheetPrimaria, "D1");
+		const capacidadSecundaria = getCellValue(updatedSheetSecundaria, "D1");
+
+		// Calcular aulas con redondeo hacia arriba (Math.ceil)
+		const aulasInicial = Math.ceil(aforoInicial / capacidadInicial);
+		const aulasPrimaria = Math.ceil(aforoPrimaria / capacidadPrimaria);
+		const aulasSecundaria = Math.ceil(aforoSecundaria / capacidadSecundaria);
 		const totalAulas = aulasInicial + aulasPrimaria + aulasSecundaria;
 
 		console.log("Cantidad de aulas calculadas:");

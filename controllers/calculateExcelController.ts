@@ -14,10 +14,8 @@ interface ProjectExcelData {
 	aula_psicomotricidad?: number;
 	sum_inicial?: number;
 	biblioteca?: number;
-	innovacion_primaria?: number;
-	innovacion_secundaria?: number;
-	taller_creativo_primaria?: number;
-	taller_creativo_secundaria?: number;
+	innovacion?: number;
+	taller_creativo?: number;
 	taller_ept?: number;
 	laboratorio?: number;
 	sum_prim_sec?: number;
@@ -36,149 +34,340 @@ interface ProjectExcelData {
 	lactario?: number;
 }
 
+// Interfaz para ambiente calculado
+interface AmbienteCalculado {
+	id: string;
+	nombre: string;
+	cantidad: number;
+	area_unitaria: number;
+	area_total: number;
+	costo_unitario: number;
+	costo_total: number;
+}
+
+// Interfaz para la respuesta completa
+interface CalculoCostosResponse {
+	success: boolean;
+	message: string;
+	data: {
+		ambientes: AmbienteCalculado[];
+		resumen: {
+			total_ambientes: number;
+			area_total_m2: number;
+			costo_ambientes: number;
+			costo_directo: number;
+			gastos_generales: number;
+			utilidad: number;
+			subtotal: number;
+			igv: number;
+			presupuesto_total: number;
+		};
+		aulas: {
+			inicial_ciclo1: number;
+			inicial_ciclo2: number;
+			primaria: number;
+			secundaria: number;
+			total: number;
+		};
+	};
+}
+
 /**
- * Actualiza el archivo Excel IDEAS PRODESIGN con los datos del proyecto
+ * Actualiza el Excel y calcula costos en el backend
  */
-export const updateProjectExcel = (req: Request, res: Response) => {
+export const updateProjectExcelAndCalculate = (
+	req: Request,
+	res: Response<CalculoCostosResponse>
+) => {
 	try {
 		const projectData: ProjectExcelData = req.body;
 
-		// 📌 Cargar el archivo Excel del backend
+		console.log("📥 Datos recibidos del frontend:", projectData);
+
+		// 📌 PASO 1: Cargar IDEAS_PRODESIGN.xlsx
 		const excelPath = path.resolve("uploads", "IDEAS_PRODESIGN.xlsx");
 		const workbook = xlsx.readFile(excelPath);
 
-		const sheetName = "CONSOLIDADO";
-		const sheet = workbook.Sheets[sheetName];
-
-		if (!sheet) {
+		const consolidadoSheet = workbook.Sheets["CONSOLIDADO"];
+		if (!consolidadoSheet) {
 			return res.status(400).json({
-				error: `No se encontró la hoja '${sheetName}' en el archivo Excel`,
-			});
+				success: false,
+				message: "No se encontró la hoja CONSOLIDADO",
+			} as any);
 		}
 
-		// 📌 Mapeo de datos del proyecto a las celdas del Excel
-		// Las celdas D64-D86 contienen las cantidades de aulas/ambientes
-		const cellMapping: Record<string, keyof ProjectExcelData> = {
-			D64: "aulas_inicial_ciclo1", // AULAS CICLO I
-			D65: "aulas_inicial_ciclo2", // AULAS CICLO II
-			D66: "aula_psicomotricidad", // AULA PSICOMOTRICIDAD
-			D67: "aulas_primaria", // AULAS PRIMARIA
-			D68: "aulas_secundaria", // AULAS SECUNDARIA
-			D69: "sum_inicial", // SUM INICIAL
-			D70: "biblioteca", // BIBLIOTECA
-			D71: "innovacion_secundaria", // INNOVACION (suma de primaria + secundaria)
-			D72: "taller_creativo_secundaria", // TALLER CREATIVO (suma)
-			D73: "taller_ept", // TALLER EPT
-			D74: "laboratorio", // LABORATORIO
-			D75: "sum_prim_sec", // SUM PRIM + SEC
-			D76: "direccion_admin", // DIRECCIÓN ADM.
-			D77: "sala_reuniones", // SALA DE REUNIONES
-			D78: "sala_profesores", // SALA DE PROFESORES
-			D79: "sshh_admin", // SSHH ADM.
-			D80: "cocina", // COCINA
-			D81: "sshh_cocina", // SSHH COCINA
-			D82: "depositos", // DEPOSITOS
-			D83: "canchas_deportivas", // CANCHAS DEPORTIVAS
-			D84: "quiosco", // QUIOSCO
-			D85: "topico", // TOPICO
-			D86: "lactario", // LACTARIO
+		// Función auxiliar para leer valores
+		const getCellValue = (cellRef: string): number => {
+			return consolidadoSheet[cellRef]?.v ?? 0;
 		};
 
-		// 📌 Actualizar las celdas con los datos del proyecto
-		Object.entries(cellMapping).forEach(([cellRef, dataKey]) => {
-			const value = projectData[dataKey];
+		// 📌 PASO 2: Leer áreas unitarias (E64-E86) ANTES de actualizar
+		// Estas son las áreas por unidad/aula que están en el Excel
+		const areasUnitarias: Record<number, number> = {};
 
-			// Solo actualizar si el valor existe y es un número válido
-			if (value !== undefined && value !== null && !isNaN(Number(value))) {
-				sheet[cellRef] = {
-					t: "n", // tipo número
-					v: Number(value),
+		for (let i = 64; i <= 86; i++) {
+			areasUnitarias[i] = getCellValue(`E${i}`);
+		}
+
+		console.log("📐 Áreas unitarias leídas del Excel:", areasUnitarias);
+
+		// 📌 PASO 3: Actualizar cantidades (D64-D86)
+		const cellMapping: Record<string, keyof ProjectExcelData> = {
+			D64: "aulas_inicial_ciclo1",
+			D65: "aulas_inicial_ciclo2",
+			D66: "aula_psicomotricidad",
+			D67: "aulas_primaria",
+			D68: "aulas_secundaria",
+			D69: "sum_inicial",
+			D70: "biblioteca",
+			D71: "innovacion",
+			D72: "taller_creativo",
+			D73: "taller_ept",
+			D74: "laboratorio",
+			D75: "sum_prim_sec",
+			D76: "direccion_admin",
+			D77: "sala_reuniones",
+			D78: "sala_profesores",
+			D79: "sshh_admin",
+			D80: "cocina",
+			D81: "sshh_cocina",
+			D82: "depositos",
+			D83: "canchas_deportivas",
+			D84: "quiosco",
+			D85: "topico",
+			D86: "lactario",
+		};
+
+		// Actualizar las cantidades (D) y calcular áreas totales (F)
+		const ambientesCalculados: AmbienteCalculado[] = [];
+		const COSTO_M2 = 1848.29096045198; // Costo por m² (leer de F6 si quieres)
+
+		Object.entries(cellMapping).forEach(([cellRef, dataKey]) => {
+			const cantidad = projectData[dataKey];
+
+			if (
+				cantidad !== undefined &&
+				cantidad !== null &&
+				!isNaN(Number(cantidad))
+			) {
+				const cantidadNum = Number(cantidad);
+				const fila = parseInt(cellRef.substring(1));
+
+				// Actualizar cantidad (D)
+				consolidadoSheet[cellRef] = {
+					t: "n",
+					v: cantidadNum,
 				};
+
+				// Obtener área unitaria de E
+				const areaUnitaria = areasUnitarias[fila] || 0;
+
+				// 🔥 CALCULAR F = D × E manualmente
+				const areaTotal = cantidadNum * areaUnitaria;
+				const cellF = `F${fila}`;
+
+				consolidadoSheet[cellF] = {
+					t: "n",
+					v: areaTotal,
+				};
+
+				// Calcular costo
+				const costoTotal = areaTotal * COSTO_M2;
+
+				// Obtener nombre del ambiente
+				const nombreCelda = consolidadoSheet[`B${fila}`];
+				const nombre = nombreCelda?.v?.toString() || dataKey;
+
+				// Agregar a resultados (solo si tiene cantidad > 0)
+				if (cantidadNum > 0) {
+					ambientesCalculados.push({
+						id: dataKey,
+						nombre: nombre,
+						cantidad: cantidadNum,
+						area_unitaria: areaUnitaria,
+						area_total: areaTotal,
+						costo_unitario: COSTO_M2,
+						costo_total: costoTotal,
+					});
+				}
+
+				console.log(
+					`✅ ${nombre}: ${cantidadNum} × ${areaUnitaria}m² = ${areaTotal}m² (S/ ${costoTotal.toFixed(
+						2
+					)})`
+				);
 			}
 		});
 
-		// 📌 También actualizar las celdas de origen si es necesario
-		// Estas son las celdas que las D64-D86 referencian con fórmulas
+		// 📌 PASO 4: También actualizar celdas origen (D4, D5, D26, D43)
 		const originCellMapping: Record<string, keyof ProjectExcelData> = {
-			D4: "aulas_inicial_ciclo1", // [192]INICIAL!G3
-			D5: "aulas_inicial_ciclo2", // [192]INICIAL!G4
-			D8: "aula_psicomotricidad", // [192]INICIAL!I34
-			D26: "aulas_primaria", // [192]PRIMARIA!G3
-			D43: "aulas_secundaria", // [192]SECUNDARIA!G3
-			D9: "sum_inicial", // SUM
-			D16: "topico", // TOPICO
-			D17: "lactario", // LACTARIO
-			D56: "cocina", // COCINA
-			D46: "biblioteca", // BIBLIOTECA
+			D4: "aulas_inicial_ciclo1",
+			D5: "aulas_inicial_ciclo2",
+			D26: "aulas_primaria",
+			D43: "aulas_secundaria",
 		};
 
 		Object.entries(originCellMapping).forEach(([cellRef, dataKey]) => {
 			const value = projectData[dataKey];
-
 			if (value !== undefined && value !== null && !isNaN(Number(value))) {
-				sheet[cellRef] = {
+				consolidadoSheet[cellRef] = {
 					t: "n",
 					v: Number(value),
 				};
 			}
 		});
 
-		// 📌 Guardar los cambios en el archivo
+		// 📌 PASO 5: Guardar cambios
 		xlsx.writeFile(workbook, excelPath);
+		console.log("💾 Excel guardado con valores actualizados");
 
-		// 📌 Leer de nuevo el archivo para obtener los valores calculados
-		const updatedWorkbook = xlsx.readFile(excelPath);
-		const updatedSheet = updatedWorkbook.Sheets[sheetName];
+		// 📌 PASO 6: Calcular totales
+		const totalArea = ambientesCalculados.reduce(
+			(sum, amb) => sum + amb.area_total,
+			0
+		);
 
-		// 📌 Función auxiliar para leer valores
-		const getCellValue = (cellRef: string): number => {
-			return updatedSheet[cellRef]?.v ?? 0;
+		const costoAmbientes = ambientesCalculados.reduce(
+			(sum, amb) => sum + amb.costo_total,
+			0
+		);
+
+		// Fórmulas de COSTO INFRA (J37-J42)
+		const costoDirecto = costoAmbientes / 2; // Simplificado según Excel
+		const gastosGenerales = costoDirecto * 0.1;
+		const utilidad = costoDirecto * 0.1;
+		const subtotal = costoDirecto + gastosGenerales + utilidad;
+		const igv = subtotal * 0.18;
+		const presupuestoTotal = subtotal + igv;
+
+		// 📌 PASO 7: Preparar respuesta
+		const response: CalculoCostosResponse = {
+			success: true,
+			message: "Costos calculados correctamente",
+			data: {
+				ambientes: ambientesCalculados,
+				resumen: {
+					total_ambientes: ambientesCalculados.length,
+					area_total_m2: Math.round(totalArea * 100) / 100,
+					costo_ambientes: Math.round(costoAmbientes * 100) / 100,
+					costo_directo: Math.round(costoDirecto * 100) / 100,
+					gastos_generales: Math.round(gastosGenerales * 100) / 100,
+					utilidad: Math.round(utilidad * 100) / 100,
+					subtotal: Math.round(subtotal * 100) / 100,
+					igv: Math.round(igv * 100) / 100,
+					presupuesto_total: Math.round(presupuestoTotal * 100) / 100,
+				},
+				aulas: {
+					inicial_ciclo1: projectData.aulas_inicial_ciclo1 || 0,
+					inicial_ciclo2: projectData.aulas_inicial_ciclo2 || 0,
+					primaria: projectData.aulas_primaria || 0,
+					secundaria: projectData.aulas_secundaria || 0,
+					total:
+						(projectData.aulas_inicial_ciclo1 || 0) +
+						(projectData.aulas_inicial_ciclo2 || 0) +
+						(projectData.aulas_primaria || 0) +
+						(projectData.aulas_secundaria || 0),
+				},
+			},
 		};
 
-		// 📌 Extraer los resultados calculados (metros cuadrados por ambiente)
-		const results: Record<string, any> = {};
+		console.log("✅ Cálculo completado:");
+		console.log(`   - Total ambientes: ${response.data.ambientes.length}`);
+		console.log(`   - Área total: ${response.data.resumen.area_total_m2} m²`);
+		console.log(
+			`   - Presupuesto: S/ ${response.data.resumen.presupuesto_total.toLocaleString()}`
+		);
 
-		// Recorrer las filas D64-D86 y obtener los m² calculados
+		return res.json(response);
+	} catch (error) {
+		console.error("❌ Error en updateProjectExcelAndCalculate:", error);
+		return res.status(500).json({
+			success: false,
+			message: "Error al procesar el archivo Excel",
+			data: {
+				ambientes: [],
+				resumen: {
+					total_ambientes: 0,
+					area_total_m2: 0,
+					costo_ambientes: 0,
+					costo_directo: 0,
+					gastos_generales: 0,
+					utilidad: 0,
+					subtotal: 0,
+					igv: 0,
+					presupuesto_total: 0,
+				},
+				aulas: {
+					inicial_ciclo1: 0,
+					inicial_ciclo2: 0,
+					primaria: 0,
+					secundaria: 0,
+					total: 0,
+				},
+			},
+		} as any);
+	}
+};
+
+/**
+ * Obtiene la configuración base del Excel (áreas unitarias y etiquetas)
+ * Útil para que el frontend sepa qué campos mostrar
+ */
+export const getExcelConfiguration = (req: Request, res: Response) => {
+	try {
+		const excelPath = path.resolve("uploads", "IDEAS_PRODESIGN.xlsx");
+		const workbook = xlsx.readFile(excelPath);
+		const consolidadoSheet = workbook.Sheets["CONSOLIDADO"];
+
+		if (!consolidadoSheet) {
+			return res.status(400).json({
+				error: "No se encontró la hoja CONSOLIDADO",
+			});
+		}
+
+		const getCellValue = (cellRef: string): any => {
+			return consolidadoSheet[cellRef]?.v ?? null;
+		};
+
+		// Extraer configuración de filas 64-86
+		const configuracion = [];
+
 		for (let i = 64; i <= 86; i++) {
-			const labelCell = updatedSheet[`B${i}`];
-			const cantidadCell = updatedSheet[`D${i}`];
-			const m2Cell = updatedSheet[`E${i}`]; // Columna E suele tener los m² totales
+			const label = getCellValue(`B${i}`);
+			const areaUnitaria = getCellValue(`E${i}`);
 
-			if (labelCell?.v) {
-				const key = labelCell.v
-					.toString()
-					.toLowerCase()
-					.replace(/\s+/g, "_")
-					.replace(/[^a-z0-9_]/g, "");
-
-				results[key] = {
-					cantidad: cantidadCell?.v ?? 0,
-					m2_total: m2Cell?.v ?? 0,
-					label: labelCell.v,
-				};
+			if (label) {
+				configuracion.push({
+					fila: i,
+					nombre: label,
+					area_unitaria: areaUnitaria || 0,
+					campo_id: label
+						.toString()
+						.toLowerCase()
+						.replace(/\s+/g, "_")
+						.replace(/[^a-z0-9_]/g, ""),
+				});
 			}
 		}
 
-		// 📌 Respuesta con los datos actualizados
 		return res.json({
 			success: true,
-			message: "Excel actualizado correctamente",
 			data: {
-				updated_cells: Object.keys(cellMapping).length,
-				calculated_results: results,
+				costo_m2: 1848.29096045198,
+				ambientes: configuracion,
 			},
 		});
 	} catch (error) {
-		console.error("Error actualizando Excel:", error);
+		console.error("Error leyendo configuración:", error);
 		return res.status(500).json({
-			error: "Error al actualizar el archivo Excel",
+			error: "Error al leer el archivo Excel",
 			details: error instanceof Error ? error.message : String(error),
 		});
 	}
 };
 
 /**
- * Obtiene los valores actuales del Excel sin modificarlo
+ * Obtiene solo los valores actuales sin calcular nada
  */
 export const getProjectExcelData = (req: Request, res: Response) => {
 	try {
@@ -188,18 +377,30 @@ export const getProjectExcelData = (req: Request, res: Response) => {
 
 		const getCellValue = (cellRef: string) => sheet[cellRef]?.v ?? 0;
 
-		// Extraer los valores actuales
 		const currentData: ProjectExcelData = {
-			aulas_inicial_ciclo1: getCellValue("D4"),
-			aulas_inicial_ciclo2: getCellValue("D5"),
-			aulas_primaria: getCellValue("D26"),
-			aulas_secundaria: getCellValue("D43"),
-			aula_psicomotricidad: getCellValue("D8"),
-			sum_inicial: getCellValue("D9"),
-			topico: getCellValue("D16"),
-			lactario: getCellValue("D17"),
-			cocina: getCellValue("D56"),
-			biblioteca: getCellValue("D46"),
+			aulas_inicial_ciclo1: getCellValue("D64"),
+			aulas_inicial_ciclo2: getCellValue("D65"),
+			aula_psicomotricidad: getCellValue("D66"),
+			aulas_primaria: getCellValue("D67"),
+			aulas_secundaria: getCellValue("D68"),
+			sum_inicial: getCellValue("D69"),
+			biblioteca: getCellValue("D70"),
+			innovacion: getCellValue("D71"),
+			taller_creativo: getCellValue("D72"),
+			taller_ept: getCellValue("D73"),
+			laboratorio: getCellValue("D74"),
+			sum_prim_sec: getCellValue("D75"),
+			direccion_admin: getCellValue("D76"),
+			sala_reuniones: getCellValue("D77"),
+			sala_profesores: getCellValue("D78"),
+			sshh_admin: getCellValue("D79"),
+			cocina: getCellValue("D80"),
+			sshh_cocina: getCellValue("D81"),
+			depositos: getCellValue("D82"),
+			canchas_deportivas: getCellValue("D83"),
+			quiosco: getCellValue("D84"),
+			topico: getCellValue("D85"),
+			lactario: getCellValue("D86"),
 		};
 
 		return res.json({

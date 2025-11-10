@@ -113,10 +113,10 @@ Project.init(
 			type: new DataTypes.INTEGER({ length: 11 }),
 		},
 		height: {
-			type: new DataTypes.INTEGER({ length: 11 }),
+			type: new DataTypes.INTEGER({ length: 21 }),
 		},
 		width: {
-			type: new DataTypes.INTEGER({ length: 11 }),
+			type: new DataTypes.INTEGER({ length: 21 }),
 		},
 		user_id: {
 			type: new DataTypes.INTEGER({ length: 11 }),

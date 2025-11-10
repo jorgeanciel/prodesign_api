@@ -1,14 +1,19 @@
 import { Router } from "express";
 import {
+	getExcelConfiguration,
 	getProjectExcelData,
-	updateProjectExcel,
+	updateProjectExcelAndCalculate,
 } from "../../controllers/calculateExcelController";
 
 const router = Router();
 
-router.post("/update-project-excel", updateProjectExcel);
+// Obtener configuración del Excel (áreas unitarias, nombres de ambientes)
+router.get("/configuracion", getExcelConfiguration);
 
-// Obtener datos actuales del Excel
-router.get("/get-project-excel", getProjectExcelData);
+// Obtener valores actuales del Excel
+router.get("/datos-actuales", getProjectExcelData);
+
+// Actualizar Excel y calcular costos
+router.post("/costos/calcular", updateProjectExcelAndCalculate);
 
 export default router;
