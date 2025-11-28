@@ -37,6 +37,8 @@ class Project extends Model<
 	declare coordenadas: string;
 	declare tipologia: string;
 	declare distrito: string;
+	declare departamento: string;
+	declare provincia: string;
 	declare puntos: string;
 	declare ambientes: string;
 	declare aforo: string;
@@ -47,6 +49,8 @@ class Project extends Model<
 	declare vertices_rectangle: string;
 	declare angle: number;
 	declare number_floors: string;
+	// declare distribucion_data: string;
+	// declare distribucion_capacidad: string;
 
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -134,7 +138,13 @@ Project.init(
 			type: DataTypes.STRING,
 		},
 		distrito: {
-			type: DataTypes.STRING,
+			type: DataTypes.CHAR(100),
+		},
+		departamento: {
+			type: DataTypes.CHAR(100),
+		},
+		provincia: {
+			type: DataTypes.CHAR(100),
 		},
 		puntos: {
 			type: DataTypes.TEXT,
@@ -166,6 +176,15 @@ Project.init(
 		number_floors: {
 			type: DataTypes.STRING,
 		},
+		//   distribucion_data: {
+		// 	type: DataTypes.JSON,
+		// 	allowNull: true,
+		// },
+		// distribucion_capacidad: {
+		// 	type: DataTypes.JSON,
+		// 	allowNull: true,
+		// },
+
 		createdAt: DataTypes.DATE,
 		updatedAt: DataTypes.DATE,
 	},
