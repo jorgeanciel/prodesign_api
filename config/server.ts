@@ -69,6 +69,7 @@ class Server {
 		this.app.use("/api/v1/detailplanpermission", detailplanpermissionRoutes);
 		this.app.use("/api/v1/admin/costsReference", costsReferenceRoutes);
 		this.app.use("/api/v1/excel", calculateExcelRoutes);
+		//this.app.use("/api/v1/projects/:id", projectRoutes); // ruta de perimetros
 		this.app.use("/api/v1/geolocation", (req, res) => {
 			// const test_library_ip = getClientIp(req);
 			const clientIP =

@@ -1,131 +1,86 @@
 import { Request, Response } from "express";
 import xlsx from "xlsx";
 
+const normalizeNumber = (value: any): number => {
+	if (value === null || value === undefined) return 0;
+
+	const num = Number(String(value).replace(",", ".").trim());
+
+	return isNaN(num) ? 0 : num;
+};
+
+const getCellNumber = (sheet: xlsx.WorkSheet, ref: string): number => {
+	const cell = sheet[ref];
+	return normalizeNumber(cell?.v);
+};
+
+const calcAulas = (aforo: number, maxPorAula: number): number => {
+	if (aforo <= 0) return 0;
+	return Math.ceil(aforo / maxPorAula);
+};
+
 export const readMatrizExcel = (req: Request, res: Response) => {
 	try {
 		if (!req.file) {
-			return res
-				.status(400)
-				.json({ error: "No se ha subido ningún archivo" });
+			return res.status(400).json({
+				error: "No se ha subido ningún archivo",
+			});
 		}
 
-		// 📌 Leer el archivo Excel subido (NUEVO_FORMATO.xlsx)
 		const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
-		const sheet = workbook.Sheets[workbook.SheetNames[0]]; // "PROGRAMA ARQUITECTÓNICO"
+		const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-		// Función auxiliar para obtener valor de celda
-		const getCellValue = (cellRef: string): number => {
-			const cell = sheet[cellRef];
-			return cell?.v ?? 0;
-		};
+		/* ===============================
+		   EDUCACIÓN INICIAL
+		================================ */
+		const aforoCicloI = getCellNumber(sheet, "B5");
+		const aforoCicloII = getCellNumber(sheet, "B6");
 
-		// 📌 EDUCACIÓN INICIAL - Máximo 25 estudiantes por aula
-		const aforoCicloI = getCellValue("B5");
-		const aforoCicloII = getCellValue("B6");
-
-		// Calcular aulas por ciclo (redondeo hacia arriba)
-		const aulasCicloI = Math.ceil(aforoCicloI / 25);
-		const aulasCicloII = Math.ceil(aforoCicloII / 25);
-		const aulasInicial = aulasCicloI + aulasCicloII;
 		const aforoInicial = aforoCicloI + aforoCicloII;
+		const aulasInicial =
+			aforoInicial > 0
+				? calcAulas(aforoCicloI, 25) + calcAulas(aforoCicloII, 25)
+				: 0;
 
-		console.log("=== EDUCACIÓN INICIAL ===");
-		console.log("Ciclo I - Aforo:", aforoCicloI, "→ Aulas:", aulasCicloI);
-		console.log("Ciclo II - Aforo:", aforoCicloII, "→ Aulas:", aulasCicloII);
-		console.log(
-			"Total Inicial - Aforo:",
-			aforoInicial,
-			"→ Aulas:",
-			aulasInicial
-		);
+		/* ===============================
+		   EDUCACIÓN PRIMARIA
+		================================ */
+		const primariaCells = ["B8", "B9", "B10", "B11", "B12", "B13"];
+		const aforosPrimaria = primariaCells.map((c) => getCellNumber(sheet, c));
 
-		// 📌 EDUCACIÓN PRIMARIA - Máximo 30 estudiantes por aula
-		const aforo1roPrim = getCellValue("B8");
-		const aforo2doPrim = getCellValue("B9");
-		const aforo3roPrim = getCellValue("B10");
-		const aforo4toPrim = getCellValue("B11");
-		const aforo5toPrim = getCellValue("B12");
-		const aforo6toPrim = getCellValue("B13");
-
-		// Calcular aulas por grado (redondeo hacia arriba)
-		const aulas1roPrim = Math.ceil(aforo1roPrim / 30);
-		const aulas2doPrim = Math.ceil(aforo2doPrim / 30);
-		const aulas3roPrim = Math.ceil(aforo3roPrim / 30);
-		const aulas4toPrim = Math.ceil(aforo4toPrim / 30);
-		const aulas5toPrim = Math.ceil(aforo5toPrim / 30);
-		const aulas6toPrim = Math.ceil(aforo6toPrim / 30);
+		const aforoPrimaria = aforosPrimaria.reduce((sum, val) => sum + val, 0);
 
 		const aulasPrimaria =
-			aulas1roPrim +
-			aulas2doPrim +
-			aulas3roPrim +
-			aulas4toPrim +
-			aulas5toPrim +
-			aulas6toPrim;
-		const aforoPrimaria =
-			aforo1roPrim +
-			aforo2doPrim +
-			aforo3roPrim +
-			aforo4toPrim +
-			aforo5toPrim +
-			aforo6toPrim;
+			aforoPrimaria > 0
+				? aforosPrimaria.reduce((sum, val) => sum + calcAulas(val, 30), 0)
+				: 0;
 
-		console.log("\n=== EDUCACIÓN PRIMARIA ===");
-		console.log("1° - Aforo:", aforo1roPrim, "→ Aulas:", aulas1roPrim);
-		console.log("2° - Aforo:", aforo2doPrim, "→ Aulas:", aulas2doPrim);
-		console.log("3° - Aforo:", aforo3roPrim, "→ Aulas:", aulas3roPrim);
-		console.log("4° - Aforo:", aforo4toPrim, "→ Aulas:", aulas4toPrim);
-		console.log("5° - Aforo:", aforo5toPrim, "→ Aulas:", aulas5toPrim);
-		console.log("6° - Aforo:", aforo6toPrim, "→ Aulas:", aulas6toPrim);
-		console.log(
-			"Total Primaria - Aforo:",
-			aforoPrimaria,
-			"→ Aulas:",
-			aulasPrimaria
+		/* ===============================
+		   EDUCACIÓN SECUNDARIA
+		================================ */
+		const secundariaCells = ["B15", "B16", "B17", "B18", "B19"];
+		const aforosSecundaria = secundariaCells.map((c) =>
+			getCellNumber(sheet, c)
 		);
 
-		// 📌 EDUCACIÓN SECUNDARIA - Máximo 30 estudiantes por aula
-		const aforo1roSec = getCellValue("B15");
-		const aforo2doSec = getCellValue("B16");
-		const aforo3roSec = getCellValue("B17");
-		const aforo4toSec = getCellValue("B18");
-		const aforo5toSec = getCellValue("B19");
-
-		// Calcular aulas por grado (redondeo hacia arriba)
-		const aulas1roSec = Math.ceil(aforo1roSec / 30);
-		const aulas2doSec = Math.ceil(aforo2doSec / 30);
-		const aulas3roSec = Math.ceil(aforo3roSec / 30);
-		const aulas4toSec = Math.ceil(aforo4toSec / 30);
-		const aulas5toSec = Math.ceil(aforo5toSec / 30);
+		const aforoSecundaria = aforosSecundaria.reduce(
+			(sum, val) => sum + val,
+			0
+		);
 
 		const aulasSecundaria =
-			aulas1roSec + aulas2doSec + aulas3roSec + aulas4toSec + aulas5toSec;
-		const aforoSecundaria =
-			aforo1roSec + aforo2doSec + aforo3roSec + aforo4toSec + aforo5toSec;
+			aforoSecundaria > 0
+				? aforosSecundaria.reduce((sum, val) => sum + calcAulas(val, 30), 0)
+				: 0;
 
-		console.log("\n=== EDUCACIÓN SECUNDARIA ===");
-		console.log("1° - Aforo:", aforo1roSec, "→ Aulas:", aulas1roSec);
-		console.log("2° - Aforo:", aforo2doSec, "→ Aulas:", aulas2doSec);
-		console.log("3° - Aforo:", aforo3roSec, "→ Aulas:", aulas3roSec);
-		console.log("4° - Aforo:", aforo4toSec, "→ Aulas:", aulas4toSec);
-		console.log("5° - Aforo:", aforo5toSec, "→ Aulas:", aulas5toSec);
-		console.log(
-			"Total Secundaria - Aforo:",
-			aforoSecundaria,
-			"→ Aulas:",
-			aulasSecundaria
-		);
-
-		// 📌 TOTALES
+		/* ===============================
+		   TOTALES
+		================================ */
 		const totalAulas = aulasInicial + aulasPrimaria + aulasSecundaria;
+
 		const aforoMaximo = aforoInicial + aforoPrimaria + aforoSecundaria;
 
-		console.log("\n=== TOTALES ===");
-		console.log("Total de Aulas:", totalAulas);
-		console.log("Aforo Máximo:", aforoMaximo);
-
-		// 📌 Construir la respuesta (manteniendo la misma estructura)
-		const response = {
+		return res.json({
 			levels: {
 				inicial: {
 					aforo: aforoInicial,
@@ -154,18 +109,9 @@ export const readMatrizExcel = (req: Request, res: Response) => {
 				area_general: "-",
 			},
 			toilets_per_student: {
-				inicial: {
-					ninos: 25,
-					ninas: 25,
-				},
-				primaria: {
-					ninos: 60,
-					ninas: 60,
-				},
-				secundaria: {
-					ninos: 60,
-					ninas: 60,
-				},
+				inicial: { ninos: 25, ninas: 25 },
+				primaria: { ninos: 60, ninas: 60 },
+				secundaria: { ninos: 60, ninas: 60 },
 			},
 			stairs: {
 				paso: 28,
@@ -177,14 +123,11 @@ export const readMatrizExcel = (req: Request, res: Response) => {
 					ancho: 2.4,
 				},
 			},
-		};
-
-		return res.json(response);
+		});
 	} catch (error) {
-		console.error("Error procesando el archivo Excel:", error);
+		console.error("Error procesando Excel:", error);
 		return res.status(500).json({
 			error: "Error al procesar el archivo",
-			details: error instanceof Error ? error.message : String(error),
 		});
 	}
 };

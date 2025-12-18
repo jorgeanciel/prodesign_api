@@ -90,8 +90,6 @@ export const getProjectsByUserIDService = async (
 	typeProject?: string
 ) => {
 	try {
-		
-
 		const projects = await Project.findAll({
 			where: {
 				user_id: userID,
@@ -126,7 +124,7 @@ export const getProjectsCostsService = async (id: number) => {
 			await project.createProjectCategory({
 				user_id: project.user_id,
 				project_id: project.id,
-				project_parent_id: project.parent_id,
+				project_parent_id: id,
 				muros_y_columnas: "A",
 				techos: "A",
 				puertas_y_ventanas: "A",
@@ -164,8 +162,6 @@ export const getProjectsCostsService = async (id: number) => {
 		costsCategories,
 		calculatedCosts,
 	};
-
-	
 };
 
 export const updateProjectCostsService = async (body: any, id: number) => {
@@ -176,7 +172,7 @@ export const updateProjectCostsService = async (body: any, id: number) => {
 		(obj, cur) => ({ ...obj, [cur.categoria]: cur.toJSON() }),
 		{}
 	);
-  
+
 	return {
 		calculatedProjectCosts: {
 			project_id: id,

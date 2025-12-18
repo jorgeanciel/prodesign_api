@@ -16,6 +16,18 @@ import fs from "fs";
 import path from "path";
 import projectErrorHandler from "../../middlewares/project-errorHandler";
 import type { Request, Response, NextFunction } from "express";
+import {
+	deleteProjectPerimeters,
+	getAllProjectsWithPerimeters,
+	getProjectPerimeters,
+	getProjectPerimetersCostSummary,
+	saveProjectPerimeters,
+} from "../../controllers/perimeterController";
+import {
+	deleteProjectDistribution,
+	getProjectDistribution,
+	saveProjectDistribution,
+} from "../../controllers/distributionController";
 
 const errPipe =
 	(fn: Function) => (req: Request, res: Response, next: NextFunction) => {
@@ -32,13 +44,26 @@ const upload = multer({ storage: storage });
 
 const router = Router();
 
-router.get("/", errPipe(getAllProjects));
-router.post("/", errPipe(createProject));
-router.put("/:id", errPipe(putProject));
-router.delete("/:id", errPipe(deleteProject));
-router.get("/:id", errPipe(getProjectsByUserID));
-router.get("/id/:id", errPipe(getProjectByID));
-router.get("/test/dataRet", errPipe(test));
+// RUTAS DE DISTRIBUCIÓN (agregar después de perímetros)
+router.post("/:id/distribution", errPipe(saveProjectDistribution));
+router.get("/:id/distribution", errPipe(getProjectDistribution));
+router.delete("/:id/distribution", errPipe(deleteProjectDistribution));
+
+//RUTAS DE PERÍMETROS (más específicas primero)
+router.post("/:id/perimeters", errPipe(saveProjectPerimeters));
+router.get(
+	"/:id/perimeters/cost-summary",
+	errPipe(getProjectPerimetersCostSummary)
+);
+router.get("/:id/perimeters", errPipe(getProjectPerimeters));
+router.delete("/:id/perimeters", errPipe(deleteProjectPerimeters));
+router.get("/perimeters/all", errPipe(getAllProjectsWithPerimeters));
+
+// RUTAS DE COSTOS
+router.get("/costs/:id", errPipe(getProjectsCosts));
+router.put("/costs/:id", errPipe(updateProjectCosts));
+
+// RUTAS DE THUMBNAIL
 router.post(
 	"/thumbnail/:id",
 	upload.single("thumbnail"),
@@ -54,7 +79,6 @@ router.get("/thumbnail/:id", (req, res) => {
 	);
 	console.log(filePath);
 	res.writeHead(200, {
-		// "Content-Length": 5813,
 		"Content-Type": "image/png",
 	});
 	const x = fs.createReadStream(filePath);
@@ -63,8 +87,17 @@ router.get("/thumbnail/:id", (req, res) => {
 	});
 	x.pipe(res);
 });
-router.get("/costs/:id", errPipe(getProjectsCosts));
-router.put("/costs/:id", errPipe(updateProjectCosts));
+
+// RUTAS DE PROYECTOS ESPECÍFICOS
+router.get("/test/dataRet", errPipe(test));
+router.get("/id/:id", errPipe(getProjectByID));
+router.get("/:id", errPipe(getProjectsByUserID));
+router.put("/:id", errPipe(putProject));
+router.delete("/:id", errPipe(deleteProject));
+
+// RUTAS GENÉRICAS (al final)
+router.get("/", errPipe(getAllProjects));
+router.post("/", errPipe(createProject));
 
 /* error handler */
 router.use(projectErrorHandler);

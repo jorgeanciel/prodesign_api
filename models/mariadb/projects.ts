@@ -49,8 +49,10 @@ class Project extends Model<
 	declare vertices_rectangle: string;
 	declare angle: number;
 	declare number_floors: string;
-	// declare distribucion_data: string;
-	// declare distribucion_capacidad: string;
+	declare perimeters_data: string; // JSON con todos los perímetros calculados
+	declare perimeters_calculated_at: Date;
+	declare distribution_data?: string;
+	declare distribution_saved_at?: Date;
 
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -176,14 +178,27 @@ Project.init(
 		number_floors: {
 			type: DataTypes.STRING,
 		},
-		//   distribucion_data: {
-		// 	type: DataTypes.JSON,
-		// 	allowNull: true,
-		// },
-		// distribucion_capacidad: {
-		// 	type: DataTypes.JSON,
-		// 	allowNull: true,
-		// },
+		perimeters_data: {
+			type: DataTypes.JSON,
+			allowNull: true,
+			comment: "Datos completos de perímetros calculados",
+		},
+		perimeters_calculated_at: {
+			type: DataTypes.DATE,
+			allowNull: true,
+			comment: "Fecha y hora del último cálculo de perímetros",
+		},
+
+		distribution_data: {
+			type: DataTypes.JSON,
+			allowNull: true,
+			comment: "Datos completos de la distribución de pabellones",
+		},
+		distribution_saved_at: {
+			type: DataTypes.DATE,
+			allowNull: true,
+			comment: "Fecha y hora cuando se guardó la distribución",
+		},
 
 		createdAt: DataTypes.DATE,
 		updatedAt: DataTypes.DATE,
